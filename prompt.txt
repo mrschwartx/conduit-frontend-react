@@ -1,0 +1,306 @@
+##################################################
+# CONDUIT FRONTEND - REACT
+# Prompt template for Claude (Claude Code recommended)
+# Usage: open conduit-frontend-react/ as the working directory and paste this
+# whole file as the first message. ../conduit-openapi/openapi.yml must exist.
+##################################################
+
+You are a senior frontend engineer. Build a production-quality single-page app.
+
+==================================================
+0. TECH STACK
+==================================================
+- React 19 + TypeScript (strict) + Vite
+- TanStack Query v5 (server state)
+- Axios (HTTP client, one configured instance + interceptors)
+- React Router (client-side routing)
+- react-hook-form + zod (forms and client-side validation)
+- openapi-typescript (types generated from the contract; not committed)
+- Vitest + React Testing Library + MSW (unit/component tests)
+- Playwright (optional e2e against a real running backend)
+- ESLint + Prettier
+
+
+==================================================
+1. PROJECT CONTEXT
+==================================================
+You are building the FRONTEND of "Conduit", a Medium-style blogging platform
+(RealWorld). Several interchangeable backends (Spring, Go/Echo, FastAPI, .NET)
+implement the same API contract, and any ONE of them runs on port 8080. The
+frontend must work with all of them without code changes, so it must depend
+ONLY on the contract and never on a specific backend.
+
+Source of truth: ../conduit-openapi/openapi.yml
+  - Read it completely first. Base URL: http://localhost:8080/api/v1
+  - If this prompt and openapi.yml disagree, openapi.yml wins; report the conflict.
+  - Do NOT edit openapi.yml. Record suspected spec defects in NOTES.md.
+
+Visual/behaviour reference (optional, only if present): conduit-nextjs.zip
+  - A working Next.js implementation with a DIFFERENT API shape. Use it only
+    to match features, page structure, copy text and styling
+    (conduit-nextjs/src/app/globals.css can be reused for visual parity).
+    Do not port its code or its API calls (its API is flat, cookie-based and
+    uses created/updated; the new contract is enveloped, JWT-based and uses
+    createdAt/updatedAt).
+
+
+==================================================
+2. API CONTRACT SUMMARY (openapi.yml is authoritative)
+==================================================
+General
+- JSON only, camelCase, payloads wrapped in envelopes ({"user":...},
+  {"article":...}, {"articles":[...],"articlesCount":n}, {"comment":...},
+  {"comments":[...]}, {"profile":...}, {"tags":[...]}).
+- Timestamps: UTC, ISO-8601 date-time (e.g. 2026-10-21T10:15:30.123Z).
+- Authentication header: "Authorization: Token <jwt>"
+  The scheme word is "Token", NOT "Bearer". Do not accept other schemes.
+- Auth levels: REQUIRED (401 if missing/invalid), OPTIONAL (anonymous allowed;
+  if a token is sent but invalid or expired -> 401), NONE.
+
+Endpoints (all under /api/v1)
+  POST   /users/login                       NONE      200  {user}
+  POST   /users                             NONE      201  {user}
+  GET    /user                              REQUIRED  200  {user}
+  PUT    /user                              REQUIRED  200  {user}      (partial update)
+  GET    /profiles/{username}               OPTIONAL  200  {profile}
+  POST   /profiles/{username}/follow        REQUIRED  200  {profile}
+  DELETE /profiles/{username}/follow        REQUIRED  200  {profile}
+  GET    /articles                          OPTIONAL  200  {articles, articlesCount}
+         query: tag, author, favorited, offset, limit
+  POST   /articles                          REQUIRED  201  {article}
+  GET    /articles/feed                     REQUIRED  200  {articles, articlesCount}
+         query: offset, limit
+  GET    /articles/{slug}                   OPTIONAL  200  {article}
+  PUT    /articles/{slug}                   REQUIRED  200  {article}   (partial update)
+  DELETE /articles/{slug}                   REQUIRED  204  no body
+  GET    /articles/{slug}/comments          OPTIONAL  200  {comments}
+  POST   /articles/{slug}/comments          REQUIRED  201  {comment}
+  DELETE /articles/{slug}/comments/{id}     REQUIRED  204  no body
+  POST   /articles/{slug}/favorite          REQUIRED  200  {article}
+  DELETE /articles/{slug}/favorite          REQUIRED  200  {article}
+  GET    /tags                              NONE      200  {tags}
+Outside the versioned prefix:
+  GET    /health                            NONE      200  plain text "OK"
+
+Request envelopes: {"user":{...}}, {"article":{...}}, {"comment":{...}}.
+Route matching: /articles/feed is a static route and must win over
+/articles/{slug}. No article may ever be created with the slug "feed".
+
+Error format (every non-2xx response, always JSON, except 204/health):
+  { "errors": { "<field-or-resource>": ["message", ...] } }
+Status codes
+  400  malformed JSON body            errors.body = ["is not valid JSON"]
+  401  missing/invalid/expired token  errors.token = ["is missing"] / ["is invalid"] / ["has expired"]
+       wrong email or password        errors.credentials = ["are invalid"]   (login only)
+  403  not the owner                  errors.article = ["forbidden"] / errors.comment = ["forbidden"]
+  404  resource not found             errors.article = ["not found"] / profile / comment
+  409  duplicate email or username    errors.email = ["has already been taken"] / errors.username = [...]
+  415  request WITH a body but Content-Type is not application/json
+  422  validation failure             errors.<field> = ["<message>", ...]  (all failing fields at once)
+  500  unexpected                     errors.server = ["internal server error"]  (never leak stack traces)
+Requests without a body (DELETE, follow, favorite) must NOT require a
+Content-Type header.
+Check order for protected endpoints: authentication (401) -> existence (404)
+-> ownership (403) -> validation (422).
+
+
+==================================================
+3. BUSINESS RULES (identical in every backend)
+==================================================
+Field shapes
+- User:    { email, token, username, bio, image }
+- Profile: { username, bio, image, following }
+- Article: { slug, title, description, body, tagList, createdAt, updatedAt,
+             favorited, favoritesCount, author: Profile }
+  In the list endpoints (/articles, /articles/feed) the article items OMIT "body".
+- Comment: { id (integer), createdAt, updatedAt, body, author: Profile }
+- bio and image: return null when not set. On input, null or "" clears them.
+  Keys must always be present in responses (never omitted).
+- token: a fresh JWT returned by POST /users, POST /users/login, GET /user, PUT /user.
+
+Validation (trim whitespace first; count Unicode characters, not bytes)
+- username: required, 3-30 chars, only [A-Za-z0-9_-]; unique case-insensitively
+- email: required, valid email format; stored lowercase; unique case-insensitively
+- password: required on register, minimum 8 chars (maximum 72 for bcrypt-safety)
+- bio: maximum 300 chars
+- image: empty/null, or a valid https URL
+- title: required, max 100 | description: required, max 200 | body: required, max 20000
+- tagList: max 10 tags after trimming and de-duplication; each tag 1-30 chars,
+  no whitespace and no commas; keep first-seen order
+- comment body: required, max 1000
+- offset: integer >= 0 (default 0) | limit: integer >= 1 (default 20); values of
+  limit above 50 are clamped to 50. Non-integer or out-of-range -> 422.
+- Validation messages: short, human readable, e.g. "can't be blank",
+  "is too short (minimum is 3 characters)", "is too long (maximum is 30 characters)",
+  "is invalid". Report ALL failing fields in one 422.
+
+Partial updates (PUT /user and PUT /articles/{slug})
+- Field absent  -> unchanged. Field present -> validated and applied.
+- "absent" and "null" must be distinguishable (bio/image null = clear).
+- PUT /user: at least one field required, otherwise 422. Changing email or
+  username re-checks uniqueness (409), ignoring the user's own record.
+- PUT /articles/{slug}: only the author may update (403 otherwise).
+
+Slugs
+- Generated from the title: Unicode NFKD normalise, strip diacritics, lowercase,
+  replace runs of non [a-z0-9] with "-", trim leading/trailing "-", max 80 chars,
+  fallback "article" if empty.
+- Uniqueness: on collision append -2, -3, ... until free.
+- Reserved: "feed" (treat as taken, so the title "Feed" becomes "feed-2").
+- When the title changes on update, regenerate the slug (excluding the article's
+  own current slug from the collision check). If the title is unchanged, keep the slug.
+
+Behaviour
+- Article lists are ordered newest first (createdAt desc, then id desc).
+- GET /articles filters: tag (exact match), author (username), favorited
+  (username). Unknown author or favorited user -> 200 with empty list, NOT 404.
+  Filters combine with AND. articlesCount is the total matches ignoring offset/limit.
+- GET /articles/feed: only articles by authors the caller follows.
+- favorited / following are computed relative to the caller; anonymous = false.
+- favoritesCount = number of users who favorited the article.
+- Follow, unfollow, favorite, unfavorite are idempotent and always return the
+  updated resource. Following yourself -> 422 errors.username = ["you cannot follow yourself"].
+- GET /tags: the 20 most used tags, ordered by usage desc then alphabetically.
+- Comments: newest first. Only the comment author can delete (403). A comment id
+  that does not belong to the given slug -> 404. Comment ids are integers.
+- Deleting an article also deletes its comments and favorites.
+- Passwords are stored only as a salted slow hash (bcrypt or argon2). Never
+  return or log a password or hash.
+- Login by email (case-insensitive). Same 401 for unknown email and wrong password.
+
+
+==================================================
+4. FRONTEND-SPECIFIC REQUIREMENTS
+==================================================
+Pages (match the legacy app)
+  /                              Home: tabs "Your Feed" (logged in), "Global Feed",
+                                 and a "#tag" tab; popular tags sidebar; pagination
+  /login, /register              Guest only
+  /settings                      Auth only: image, username, bio, email, new password, logout
+  /editor, /editor/:slug         Auth only: create / edit article (edit: author only)
+  /article/:slug                 Article, favorite/follow actions, edit/delete for the
+                                 author, comments list/add/delete
+  /profile/:username             Profile + "My Articles"
+  /profile/:username/favorites   Profile + "Favorited Articles"
+  *                              Not found page
+UI page size is 10 articles per page (send limit=10&offset=page*10).
+
+Configuration
+- VITE_API_BASE_URL, default "/api/v1". In development the Vite dev server proxies
+  /api to http://localhost:8080, so the browser stays same-origin and no CORS is
+  needed. Production builds read the value at build time. Provide .env.example.
+- Switching backend must require zero frontend change.
+
+API layer
+- npm script "gen:api": openapi-typescript ../conduit-openapi/openapi.yml
+  -> src/api/schema.d.ts (gitignored; generated in postinstall/predev/prebuild).
+  Use the generated types for every request/response; no hand-copied types.
+- src/api/client.ts: one Axios instance, baseURL from config.
+  Request interceptor adds "Authorization: Token <jwt>" when a token exists
+  (the scheme is "Token", NOT "Bearer").
+  Response interceptor: on 401 from any endpoint EXCEPT /users/login and
+  /users, clear the token, reset the query cache and redirect to /login.
+  Do not set Content-Type on requests without a body.
+- src/api/errors.ts: convert an Axios error into a typed AppError. The contract
+  error body is {"errors":{"field":["msg", ...]}}; map it to react-hook-form
+  field errors (setError per field; keys like "credentials", "token" or
+  "article" are form-level messages). Network failures and 5xx -> generic toast.
+  Status mapping: 401 unauthenticated, 403 forbidden, 404 not found,
+  409 conflict (email/username already taken -> field error), 422 validation.
+- Query hooks per feature wrapping the endpoints; a query-key factory
+  (e.g. articleKeys.list(filters), articleKeys.detail(slug)).
+
+Auth
+- Keep the JWT in a single auth module (localStorage key "conduit_token"; this is
+  the only place that touches storage). The user object comes from GET /user
+  (enabled only when a token exists) and is cached by TanStack Query.
+- Login/register store the returned token and set the user in the cache.
+- Logout: clear token, clear the query cache, navigate to "/" and show a
+  "You've been logged out successfully!" message.
+- Route guards: RequireAuth (redirect to /login) and GuestOnly (redirect to /).
+- While the initial GET /user is loading, show a neutral loading state, not a
+  flash of logged-out UI.
+
+Data behaviour
+- Mutations invalidate the right queries. Favorite/unfavorite and follow/unfollow
+  use optimistic updates with rollback on error; the server response is the final truth.
+- Article edit: after PUT, navigate to /article/<slug from the response>, because
+  the slug changes when the title changes.
+- Unauthenticated users clicking favorite/follow/comment are sent to /login.
+- Client-side validation mirrors section 3 (lengths, username pattern, https
+  image URL, tag rules, max 10 tags) for fast feedback, but the server stays the
+  authority: always display server 422 messages.
+- Tag input: add on Enter/comma, trim, de-duplicate, reject whitespace.
+- The editor sends only the fields it needs; the settings form sends only
+  changed fields (the contract supports partial updates); an empty bio/image is
+  sent as null; the password field is omitted when empty.
+
+Feedback messages (client-side toasts, replacing the legacy server flash)
+  After register: "Welcome to Conduit, <username>!"
+  Article created: "Article published successfully!"  updated: "Article updated successfully!"
+  Article deleted: "Article deleted successfully."    Settings: "Settings updated successfully."
+  Messages auto-dismiss and are announced to screen readers (role="status").
+
+Security and rendering
+- Render article body, description and comment text as PLAIN TEXT. No Markdown,
+  no dangerouslySetInnerHTML.
+- Only render avatar images from https URLs; fall back to a default avatar.
+- Never put the token in URLs or logs. No secrets in the repo.
+
+Quality
+- Feature-based structure:
+    src/app          (providers, router, layout, error boundary)
+    src/features/{auth,profiles,articles,comments}/{api,hooks,components,pages}
+    src/shared       (ui components, hooks, utils, config)
+    src/api          (client, errors, generated schema)
+- Loading skeletons and empty states ("No articles are here... yet."), error
+  boundaries, 404 page, light/dark theme through prefers-color-scheme, responsive
+  layout, keyboard-accessible controls, labelled form fields, document titles per page.
+- Dates formatted from createdAt with Intl.DateTimeFormat.
+
+Tests
+- Vitest + RTL + MSW: auth flow, feed tabs and pagination, favorite/follow
+  optimistic update and rollback, article create/edit slug change, comments
+  add/delete, error mapping (422 field errors, 401 redirect), route guards.
+- MSW handlers must return payloads that satisfy the generated types.
+- Optional Playwright journey (register -> publish -> comment -> favorite) that
+  runs against whichever backend is on :8080.
+
+
+==================================================
+5. HOW TO WORK
+==================================================
+1. Read ../conduit-openapi/openapi.yml fully. Summarise your understanding and
+   list at most 10 ambiguities or spec defects. Record them in NOTES.md with the
+   assumption you take for each, and continue without waiting unless blocked.
+2. Propose the structure (brief), then build in this order, committing after
+   each step:
+   a. Vite + TS + lint/test setup, config, generated API types, Axios client, error mapping
+   b. app shell: router, providers, layout, nav, toasts, theme
+   c. auth: register, login, current user, guards, logout, settings
+   d. articles: home feeds, tags, pagination, article page, editor, favorites
+   e. profiles: profile pages, follow
+   f. comments
+3. Write tests as you go (see section 4). Run lint, typecheck and tests before
+   each commit.
+4. Verify manually against a real backend on :8080 (any of them) and note any
+   backend-specific behaviour you had to work around: that indicates a contract
+   gap and goes into NOTES.md, NOT into a frontend hack.
+5. Write README.md: prerequisites, install, env variables, dev server, build, tests.
+6. Do not add features that are not in the contract or the legacy app. Keep
+   dependencies minimal and justify non-obvious ones in NOTES.md. Prefer current
+   stable versions and check library docs for new major versions instead of
+   relying on memory.
+
+==================================================
+6. DEFINITION OF DONE
+==================================================
+[ ] All pages in section 4 work against the real backend on :8080/api/v1
+[ ] Types come from the generated schema; no hand-written API types
+[ ] "Token" auth header; 401 handling; guards; logout clears everything
+[ ] Server 422 errors shown per field; 409 shown on email/username
+[ ] Optimistic favorite/follow with rollback; slug change handled on edit
+[ ] Plain-text rendering only; https-only avatars
+[ ] Tests, lint and typecheck pass; build succeeds
+[ ] .env.example, README.md, NOTES.md present
+[ ] Works unchanged with every backend implementation
