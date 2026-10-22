@@ -21,6 +21,14 @@ export function getToken(): string | null {
   return memory
 }
 
+function persist(write: () => void): void {
+  try {
+    write()
+  } catch {
+    return
+  }
+}
+
 function emit() {
   listeners.forEach((listener) => listener())
 }
@@ -28,20 +36,14 @@ function emit() {
 export function setToken(token: string): void {
   memory = token
   loaded = true
-  try {
-    localStorage.setItem(KEY, token)
-  } catch {
-  }
+  persist(() => localStorage.setItem(KEY, token))
   emit()
 }
 
 export function clearToken(): void {
   memory = null
   loaded = true
-  try {
-    localStorage.removeItem(KEY)
-  } catch {
-  }
+  persist(() => localStorage.removeItem(KEY))
   emit()
 }
 

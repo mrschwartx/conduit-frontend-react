@@ -30,7 +30,7 @@ jobs:
           configFile: .commitlintrc.json
 
   conduit-quality:
-    name: Conduit code quality
+    name: Conduit quality
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
