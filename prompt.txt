@@ -1,7 +1,7 @@
 ##################################################
 # CONDUIT FRONTEND - REACT
 # Prompt template for Claude (Claude Code recommended)
-# Usage: open conduit-frontend-react/ as the working directory and paste this
+# Usage: open conduit-frontend/ as the working directory and paste this
 # whole file as the first message. ../conduit-openapi/openapi.yml must exist.
 ##################################################
 
