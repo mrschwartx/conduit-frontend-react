@@ -1,5 +1,3 @@
-// A tiny external store so toasts can be raised from anywhere (components,
-// mutation callbacks, the Axios interceptor) without a provider.
 export type ToastKind = 'success' | 'error'
 
 export interface ToastItem {

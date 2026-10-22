@@ -1,8 +1,3 @@
-// API shapes used by the frontend. They are maintained here, inside this
-// project, so the frontend has no build-time dependency on the OpenAPI file
-// (which lives only in conduit-openapi). Runtime compatibility with every
-// backend is covered by the MSW tests and the Playwright e2e tests.
-
 export interface Profile {
   username: string
   bio: string | null
@@ -31,7 +26,6 @@ export interface Article {
   author: Profile
 }
 
-/** List endpoints omit `body`; a full Article is structurally a superset. */
 export type ArticleListItem = Omit<Article, 'body'>
 
 export interface Comment {

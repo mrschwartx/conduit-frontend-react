@@ -31,7 +31,6 @@ export function useUpdateArticle() {
     mutationFn: ({ slug, patch }: { slug: string; patch: UpdateArticlePayload }) =>
       updateArticle(slug, patch),
     onSuccess: (article, { slug }) => {
-      // The slug is regenerated when the title changes: the response is the truth.
       if (article.slug !== slug) queryClient.removeQueries({ queryKey: articleKeys.detail(slug) })
       queryClient.setQueryData(articleKeys.detail(article.slug), article)
       void queryClient.invalidateQueries({ queryKey: articleKeys.lists() })
@@ -56,7 +55,6 @@ export function useDeleteArticle() {
   })
 }
 
-/** Optimistic favorite/unfavorite; rolls back on error, server response wins. */
 export function useToggleFavorite() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -86,7 +84,7 @@ export function useToggleFavorite() {
         (a) => a.slug === article.slug,
         (a) => ({ ...a, favorited: article.favorited, favoritesCount: article.favoritesCount }),
       )
-      // Membership of "favorited by X" lists changed; refresh them when next shown.
+
       void queryClient.invalidateQueries({ queryKey: articleKeys.lists(), refetchType: 'none' })
     },
   })

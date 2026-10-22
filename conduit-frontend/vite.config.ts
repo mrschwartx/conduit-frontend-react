@@ -2,9 +2,6 @@ import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
-// The browser always talks to the same origin; in development and preview Vite
-// forwards /api to whichever backend is listening on :8080, so no CORS is
-// needed. In Docker, nginx does the same job (see conduit-docker).
 const PORT = 3000
 const proxy = {
   '/api': {

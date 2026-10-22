@@ -9,10 +9,6 @@ interface NavigableRouter {
   state: { location: { pathname: string } }
 }
 
-/**
- * A 401 from any endpoint other than login/register means the session is gone:
- * clear the token, reset the query cache and send the user to /login.
- */
 export function installUnauthorizedHandler(queryClient: QueryClient, router: NavigableRouter): void {
   setUnauthorizedHandler(() => {
     const hadSession = getToken() !== null

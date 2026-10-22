@@ -1,7 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import { isTransportError, toAppError } from '@/api/errors'
 
-/** 4xx answers are final; network failures and 5xx get one retry. */
 export function createQueryClient({ retry = true }: { retry?: boolean } = {}): QueryClient {
   return new QueryClient({
     defaultOptions: {

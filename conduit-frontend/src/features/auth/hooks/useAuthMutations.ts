@@ -30,7 +30,7 @@ export function useUpdateSettings() {
     mutationFn: updateCurrentUser,
     onSuccess: (user) => {
       queryClient.setQueryData(authKeys.user(), user)
-      setToken(user.token) // PUT /user returns a fresh JWT
+      setToken(user.token)
       void queryClient.invalidateQueries({ queryKey: profileKeys.all })
       void queryClient.invalidateQueries({ queryKey: articleKeys.all })
       toast.success('Settings updated successfully.')

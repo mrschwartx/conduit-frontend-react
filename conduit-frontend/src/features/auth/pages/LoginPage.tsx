@@ -10,7 +10,6 @@ import { useLogin } from '../hooks/useAuthMutations'
 
 const FIELDS = ['email', 'password'] as const
 
-/** Only follow in-app paths when returning to where a guard sent us from. */
 function safeReturnPath(state: unknown): string {
   const from = (state as { from?: unknown } | null)?.from
   return typeof from === 'string' && from.startsWith('/') && !from.startsWith('//') ? from : '/'

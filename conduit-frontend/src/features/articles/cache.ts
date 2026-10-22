@@ -5,7 +5,6 @@ import type { Article, ArticleListItem, ArticlesPage } from '@/api/types'
 export type Snapshot = [QueryKey, unknown][]
 type Patcher = <T extends ArticleListItem>(article: T) => T
 
-/** Capture the current cache entries under the given prefixes (for rollback). */
 export function snapshotCaches(queryClient: QueryClient, prefixes: QueryKey[]): Snapshot {
   return prefixes.flatMap((queryKey) => queryClient.getQueriesData({ queryKey }))
 }
@@ -14,10 +13,6 @@ export function restoreCaches(queryClient: QueryClient, snapshot: Snapshot): voi
   snapshot.forEach(([queryKey, data]) => queryClient.setQueryData(queryKey, data))
 }
 
-/**
- * Apply `patch` to every cached copy of the matching articles: all list pages
- * (global, feed, tag, profile) and every article detail.
- */
 export function patchArticles(
   queryClient: QueryClient,
   matches: (article: ArticleListItem) => boolean,

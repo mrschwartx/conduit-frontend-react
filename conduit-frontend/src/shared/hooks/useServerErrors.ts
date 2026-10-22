@@ -3,11 +3,6 @@ import type { FieldValues, UseFormSetError } from 'react-hook-form'
 import { applyServerErrors, describeError } from '@/api/errors'
 import { toast } from '@/shared/toast/toast-store'
 
-/**
- * Funnel for server failures in a react-hook-form form: field keys become field
- * errors, other keys become form-level messages, network/5xx becomes a toast.
- * `fields` must be a stable (module-level) array.
- */
 export function useServerErrors<T extends FieldValues>(
   setError: UseFormSetError<T>,
   fields: readonly string[],

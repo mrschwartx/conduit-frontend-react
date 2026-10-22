@@ -9,7 +9,6 @@ import type {
   UpdateArticlePayload,
 } from '@/api/types'
 
-/** The UI shows 10 articles per page. */
 export const PAGE_SIZE = 10
 
 const path = (slug: string) => `/articles/${encodeURIComponent(slug)}`

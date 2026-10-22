@@ -1,7 +1,6 @@
 import type { NewArticlePayload, UpdateArticlePayload } from '@/api/types'
 import type { ArticleValues } from '@/shared/validation/schemas'
 
-/** Create: send what the author filled in; tagList only when there are tags. */
 export function buildNewArticle(values: ArticleValues): NewArticlePayload {
   const payload: NewArticlePayload = {
     title: values.title,
@@ -12,7 +11,6 @@ export function buildNewArticle(values: ArticleValues): NewArticlePayload {
   return payload
 }
 
-/** Update is partial: send only the fields that changed. */
 export function buildArticlePatch(initial: ArticleValues, values: ArticleValues): UpdateArticlePayload {
   const patch: UpdateArticlePayload = {}
   if (values.title !== initial.title) patch.title = values.title

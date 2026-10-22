@@ -1,7 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { getToasts, subscribeToasts } from './toast-store'
 
-/** Always mounted so screen readers announce messages as they appear. */
 export function ToastRegion() {
   const toasts = useSyncExternalStore(subscribeToasts, getToasts, getToasts)
   return (

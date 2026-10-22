@@ -6,7 +6,6 @@ import { url } from '@/test/handlers'
 import { renderApp } from '@/test/render'
 import { server } from '@/test/server'
 
-/** Serves one article per page and records the query string of every call. */
 function serveArticles(path: '/articles' | '/articles/feed', total = 1) {
   const calls: URLSearchParams[] = []
   server.use(

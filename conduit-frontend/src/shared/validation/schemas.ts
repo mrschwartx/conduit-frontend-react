@@ -1,8 +1,5 @@
-// Client-side mirror of the business rules (fast feedback only: the server
-// stays the authority and its 422 messages are always displayed).
 import { z } from 'zod'
 
-/** Unicode characters, not UTF-16 units or bytes. */
 export const chars = (value: string): number => Array.from(value).length
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -51,7 +48,6 @@ export const passwordField = z.string().superRefine((value, ctx) => {
     ctx.addIssue({ code: 'custom', message: 'Password is too long (maximum is 72 characters)' })
 })
 
-/** Empty means "leave unchanged" in the settings form. */
 export const optionalPasswordField = z.string().superRefine((value, ctx) => {
   const length = chars(value)
   if (length === 0) return
@@ -84,7 +80,6 @@ export const imageField = z
 export const MAX_TAGS = 10
 export const MAX_TAG_LENGTH = 30
 
-/** Returns an error message for a single candidate tag, or null if it is fine. */
 export function tagProblem(tag: string): string | null {
   if (tag === '') return null
   if (/\s/.test(tag)) return 'Tags cannot contain spaces'

@@ -1,4 +1,3 @@
-// The ONLY module that touches browser storage. The JWT lives under one key.
 const KEY = 'conduit_token'
 
 type Listener = () => void
@@ -10,7 +9,7 @@ function read(): string | null {
   try {
     return localStorage.getItem(KEY)
   } catch {
-    return memory // storage unavailable (private mode): keep it in memory
+    return memory
   }
 }
 
@@ -32,7 +31,6 @@ export function setToken(token: string): void {
   try {
     localStorage.setItem(KEY, token)
   } catch {
-    /* kept in memory only */
   }
   emit()
 }
@@ -43,7 +41,6 @@ export function clearToken(): void {
   try {
     localStorage.removeItem(KEY)
   } catch {
-    /* nothing to remove */
   }
   emit()
 }
@@ -55,7 +52,6 @@ export function subscribeToken(listener: Listener): () => void {
   }
 }
 
-/** Test helper: forget the cached value so the next read hits storage again. */
 export function resetTokenCache(): void {
   loaded = false
   memory = null

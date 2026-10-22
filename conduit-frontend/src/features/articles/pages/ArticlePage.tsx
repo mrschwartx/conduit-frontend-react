@@ -25,7 +25,6 @@ export function ArticlePage() {
             </div>
           </div>
           <div className="container page">
-            {/* Plain text: whitespace preserved by CSS, never rendered as Markdown/HTML. */}
             <p className="article-body">{article.body}</p>
             <TagList tags={article.tagList} />
             <hr />

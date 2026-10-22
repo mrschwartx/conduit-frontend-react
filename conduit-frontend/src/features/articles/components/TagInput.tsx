@@ -7,7 +7,7 @@ interface TagInputProps {
   draft: string
   error?: string
   onDraftChange: (value: string) => void
-  /** Called on Enter (commas are handled by the parent via onDraftChange). */
+
   onCommit: () => void
   onRemove: (tag: string) => void
 }

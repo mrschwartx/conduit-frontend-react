@@ -20,7 +20,7 @@ export default defineConfig([
     },
   },
   {
-    // Test helpers legitimately export non-components next to components.
+
     files: ['src/test/**', '**/*.test.{ts,tsx}'],
     rules: { 'react-refresh/only-export-components': 'off' },
   },

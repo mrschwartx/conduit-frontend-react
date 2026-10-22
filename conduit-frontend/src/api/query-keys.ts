@@ -3,7 +3,7 @@ export interface ArticleFilters {
   tag?: string
   author?: string
   favorited?: string
-  /** Zero-based page. */
+
   page: number
 }
 
@@ -15,7 +15,7 @@ export const articleKeys = {
   all: ['articles'] as const,
   lists: () => [...articleKeys.all, 'list'] as const,
   list: (filters: ArticleFilters) => [...articleKeys.lists(), filters] as const,
-  /** Prefix that matches every cached page of the personal feed. */
+
   feeds: () => [...articleKeys.lists(), { scope: 'feed' }] as const,
   details: () => [...articleKeys.all, 'detail'] as const,
   detail: (slug: string) => [...articleKeys.details(), slug] as const,

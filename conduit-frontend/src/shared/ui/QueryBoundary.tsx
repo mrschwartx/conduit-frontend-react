@@ -11,7 +11,6 @@ interface QueryBoundaryProps<T> {
   children: (data: T) => ReactNode
 }
 
-/** Loading skeleton, not-found / error message with retry, or the data. */
 export function QueryBoundary<T>({
   query,
   notFound = 'Not found.',

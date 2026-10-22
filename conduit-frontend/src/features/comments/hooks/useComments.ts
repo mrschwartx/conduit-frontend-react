@@ -13,7 +13,7 @@ export function useAddComment(slug: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (body: string) => addComment(slug, { body }),
-    // Comments are listed newest first.
+
     onSuccess: (comment) =>
       queryClient.setQueryData<Comment[]>(commentKeys.list(slug), (old) => [comment, ...(old ?? [])]),
   })

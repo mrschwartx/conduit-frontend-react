@@ -28,7 +28,7 @@ describe('editor: create', () => {
     await user.type(screen.getByLabelText("What's this article about?"), 'About things')
     await user.type(screen.getByLabelText('Write your article'), 'Some body')
     await user.type(screen.getByLabelText('Enter tags'), 'react{Enter}')
-    await user.type(screen.getByLabelText('Enter tags'), 'vitest') // not confirmed with Enter
+    await user.type(screen.getByLabelText('Enter tags'), 'vitest')
     await user.click(screen.getByRole('button', { name: 'Publish Article' }))
 
     expect(await screen.findByText('Article published successfully!')).toBeInTheDocument()

@@ -94,7 +94,6 @@ function SettingsForm({ user }: { user: User }) {
         </button>
       </form>
       <hr />
-      {/* /logout clears the session and returns to "/" (see LogoutPage). */}
       <button
         type="button"
         className="btn btn-danger-outline"
@@ -109,6 +108,6 @@ function SettingsForm({ user }: { user: User }) {
 export function SettingsPage() {
   useDocumentTitle('Settings')
   const { user } = useAuth()
-  // RequireAuth guarantees a user; the guard keeps the types honest.
+
   return user ? <SettingsForm key={user.username} user={user} /> : null
 }

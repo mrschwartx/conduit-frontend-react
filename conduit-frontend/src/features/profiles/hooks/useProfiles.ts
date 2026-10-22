@@ -14,7 +14,6 @@ export function useProfile(username: string) {
   })
 }
 
-/** Optimistic follow/unfollow across the profile and every cached article by that author. */
 export function useToggleFollow() {
   const queryClient = useQueryClient()
 
@@ -45,7 +44,7 @@ export function useToggleFollow() {
     },
     onSuccess: (profile) => {
       apply(profile.username, profile.following)
-      // The personal feed's membership depends on who we follow.
+
       void queryClient.invalidateQueries({ queryKey: articleKeys.feeds() })
     },
   })

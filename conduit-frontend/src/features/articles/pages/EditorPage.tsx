@@ -20,7 +20,7 @@ const EMPTY: ArticleValues = { title: '', description: '', body: '', tagList: []
 
 interface ArticleFormProps {
   initial: ArticleValues
-  /** Present when editing an existing article. */
+
   slug?: string
 }
 
@@ -44,7 +44,6 @@ function ArticleForm({ initial, slug }: ArticleFormProps) {
 
   const setTags = (next: string[]) => setValue('tagList', next, { shouldDirty: true })
 
-  /** Moves `raw` into the tag list; returns false (and shows why) if it is rejected. */
   const commit = (raw: string): boolean => {
     const result = addTags(getValues('tagList'), raw)
     if (result.error) {
@@ -76,14 +75,13 @@ function ArticleForm({ initial, slug }: ArticleFormProps) {
     }
     const patch = buildArticlePatch(initial, values)
     if (Object.keys(patch).length === 0) {
-      done({ slug }) // nothing changed: do not send an empty update
+      done({ slug })
       return
     }
     update.mutate({ slug, patch }, { onSuccess: done, onError: handle })
   })
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
-    // A tag typed but not yet confirmed with Enter still counts.
     if (draft.trim() !== '') {
       if (!commit(draft)) {
         event.preventDefault()

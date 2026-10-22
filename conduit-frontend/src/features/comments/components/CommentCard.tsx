@@ -14,7 +14,6 @@ export function CommentCard({ comment, canDelete, deleting, onDelete }: CommentC
   const profileHref = `/profile/${encodeURIComponent(comment.author.username)}`
   return (
     <article className="comment-card">
-      {/* Plain text only: never interpreted as markup or Markdown. */}
       <p className="comment-body">{comment.body}</p>
       <div className="comment-footer">
         <Link to={profileHref} className="avatar-link" aria-hidden="true" tabIndex={-1}>

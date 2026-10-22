@@ -11,7 +11,6 @@ interface TextFieldProps extends InputProps {
   rows?: number
 }
 
-/** Labelled field. Spread react-hook-form's `register(...)` onto it. */
 export function TextField({ id, label, error, multiline, rows = 6, ...rest }: TextFieldProps) {
   const errorId = `${id}-error`
   const a11y = {

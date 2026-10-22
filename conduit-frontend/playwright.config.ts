@@ -1,9 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// The journey runs against the production build served by `vite preview` on
-// :3000. Vite forwards /api to a Conduit backend on :8080. When no backend is
-// running, e2e/support/mock-api.mjs is started on :8080 instead, so the suite
-// also runs in CI. Any real backend that is already listening is reused.
 const PORT = Number(process.env.E2E_PORT ?? 3000)
 const API_PORT = Number(process.env.MOCK_API_PORT ?? 8080)
 

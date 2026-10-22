@@ -38,7 +38,7 @@ describe('registration', () => {
   })
 
   it('validates on the client without calling the server', async () => {
-    const { user } = renderApp('/register') // any request would fail the test (unhandled)
+    const { user } = renderApp('/register')
     await user.click(screen.getByRole('button', { name: 'Sign up' }))
 
     expect(await screen.findByText("Username can't be blank")).toBeInTheDocument()

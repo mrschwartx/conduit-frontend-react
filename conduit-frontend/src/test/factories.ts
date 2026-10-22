@@ -1,5 +1,3 @@
-// Payloads are typed with src/api/types, so a contract change that the
-// fixtures do not follow fails the typecheck.
 import type { Article, ArticleListItem, ArticlesPage, Comment, Profile, User } from '@/api/types'
 
 export const makeProfile = (overrides: Partial<Profile> = {}): Profile => ({
@@ -33,7 +31,6 @@ export const makeArticle = (overrides: Partial<Article> = {}): Article => ({
   ...overrides,
 })
 
-/** List endpoints omit `body`. */
 export const makeListItem = (overrides: Partial<ArticleListItem> = {}): ArticleListItem => {
   const full = makeArticle(overrides)
   return {

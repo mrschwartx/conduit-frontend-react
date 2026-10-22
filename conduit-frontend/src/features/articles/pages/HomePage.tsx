@@ -15,7 +15,6 @@ export function HomePage() {
   const { user, ready } = useAuth()
   const [params, setParams] = useSearchParams()
 
-  // The tab and page live in the URL so Back/Forward and reloads behave.
   const tag = params.get('tag') || undefined
   const pageNumber = Number(params.get('page'))
   const page = Number.isInteger(pageNumber) && pageNumber >= 1 ? pageNumber - 1 : 0

@@ -27,12 +27,11 @@ describe('favorite button', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Favorite article' }))
 
-    // Optimistic: flipped and +1 while the request is still pending.
     const optimistic = await screen.findByRole('button', { name: 'Unfavorite article' })
     expect(optimistic).toHaveTextContent('4')
 
     release()
-    // The server says 7 (others favorited meanwhile): the server wins.
+
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Unfavorite article' })).toHaveTextContent('7'),
     )

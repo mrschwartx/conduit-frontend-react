@@ -26,7 +26,7 @@ export function RegisterPage() {
     clear()
     registerUser.mutate(values, {
       onSuccess: () => void navigate('/', { replace: true }),
-      onError: handle, // 409 (taken) and 422 arrive as field errors
+      onError: handle,
     })
   })
 

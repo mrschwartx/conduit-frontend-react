@@ -8,8 +8,6 @@ export const api = axios.create({
   headers: { Accept: 'application/json' },
 })
 
-// 401s from these endpoints are normal outcomes (wrong password, duplicate
-// user), not an expired session.
 const AUTH_ENDPOINTS = new Set(['/users/login', '/users'])
 
 let onUnauthorized: () => void = () => {}
@@ -20,10 +18,9 @@ export function setUnauthorizedHandler(handler: () => void): void {
 
 api.interceptors.request.use((config) => {
   const token = getToken()
-  // The scheme word is "Token", not "Bearer".
+
   if (token) config.headers.set('Authorization', `Token ${token}`)
-  // Requests without a body (DELETE, follow, favorite) must not send a
-  // Content-Type; `false` stops axios adding its own default.
+
   if (config.data === undefined) config.headers.set('Content-Type', false)
   return config
 })

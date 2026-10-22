@@ -9,7 +9,6 @@ interface AvatarProps {
 }
 
 export function Avatar({ image, size = 'medium' }: AvatarProps) {
-  // Remember which URL failed so a later, different URL gets a fresh chance.
   const [failedUrl, setFailedUrl] = useState<string | null>(null)
   const source = isHttpsUrl(image) && image !== failedUrl ? image : DEFAULT_AVATAR
   return (

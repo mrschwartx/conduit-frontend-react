@@ -6,11 +6,6 @@ import { isTransportError, toAppError } from '@/api/errors'
 import { fetchCurrentUser } from '../api/auth.api'
 import { getToken, subscribeToken } from '../token'
 
-/**
- * `user` comes from GET /user (only requested when a token exists) and lives in
- * the query cache. `ready` is false only while that first request is in flight,
- * so callers can show a neutral state instead of a flash of logged-out UI.
- */
 export function useAuth() {
   const token = useSyncExternalStore(subscribeToken, getToken, getToken)
   const query = useQuery({
@@ -25,7 +20,6 @@ export function useAuth() {
   return { user, ready }
 }
 
-/** Run `action` for signed-in users; send everyone else to /login. */
 export function useAuthGate() {
   const { user } = useAuth()
   const navigate = useNavigate()

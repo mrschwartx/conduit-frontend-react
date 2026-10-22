@@ -4,11 +4,6 @@ import { Navigate } from 'react-router'
 import { toast } from '@/shared/toast/toast-store'
 import { endSession } from '../session'
 
-/**
- * Logging out from inside a guarded page would race the guard (it would bounce
- * to /login before our navigation to "/"). This route is not guarded, so the
- * session ends here and we land on the home page.
- */
 export function LogoutPage() {
   const queryClient = useQueryClient()
   const done = useRef(false)

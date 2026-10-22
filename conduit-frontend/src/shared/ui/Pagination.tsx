@@ -1,5 +1,4 @@
 interface PaginationProps {
-  /** Zero-based current page. */
   page: number
   total: number
   pageSize: number
