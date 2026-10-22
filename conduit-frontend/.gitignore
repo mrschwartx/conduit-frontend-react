@@ -23,8 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# Generated from ../conduit-openapi/openapi.yml (npm run gen:api)
-src/api/schema.d.ts
 coverage
 playwright-report
 test-results

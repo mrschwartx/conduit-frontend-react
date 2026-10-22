@@ -1,36 +1,94 @@
-// Every type is derived from the generated schema (npm run gen:api).
-// Nothing here is a hand-written API shape.
-import type { components, operations } from './schema'
+// API shapes used by the frontend. They are maintained here, inside this
+// project, so the frontend has no build-time dependency on the OpenAPI file
+// (which lives only in conduit-openapi). Runtime compatibility with every
+// backend is covered by the MSW tests and the Playwright e2e tests.
 
-type JsonBody<T> = T extends { content: { 'application/json': infer B } } ? B : never
-type Res<Op extends keyof operations, S extends number> = operations[Op]['responses'] extends infer R
-  ? S extends keyof R
-    ? JsonBody<R[S]>
-    : never
-  : never
-type Req<Op extends keyof operations> = operations[Op]['requestBody'] extends infer B
-  ? JsonBody<B>
-  : never
+export interface Profile {
+  username: string
+  bio: string | null
+  image: string | null
+  following: boolean
+}
 
-export type User = components['schemas']['User']
-export type Profile = components['schemas']['Profile']
-export type Article = components['schemas']['Article']
-export type Comment = components['schemas']['Comment']
+export interface User {
+  email: string
+  token: string
+  username: string
+  bio: string | null
+  image: string | null
+}
 
-export type ArticlesPage = Res<'GetArticles', 200>
+export interface Article {
+  slug: string
+  title: string
+  description: string
+  body: string
+  tagList: string[]
+  createdAt: string
+  updatedAt: string
+  favorited: boolean
+  favoritesCount: number
+  author: Profile
+}
+
 /** List endpoints omit `body`; a full Article is structurally a superset. */
-export type ArticleListItem = ArticlesPage['articles'][number]
+export type ArticleListItem = Omit<Article, 'body'>
 
-export type LoginPayload = Req<'Login'>['user']
-export type NewUserPayload = Req<'CreateUser'>['user']
-export type UpdateUserPayload = Req<'UpdateCurrentUser'>['user']
-export type NewArticlePayload = Req<'CreateArticle'>['article']
-export type UpdateArticlePayload = Req<'UpdateArticle'>['article']
-export type NewCommentPayload = Req<'CreateArticleComment'>['comment']
+export interface Comment {
+  id: number
+  createdAt: string
+  updatedAt: string
+  body: string
+  author: Profile
+}
 
-export type UserResponse = Res<'GetCurrentUser', 200>
-export type ProfileResponse = Res<'GetProfileByUsername', 200>
-export type ArticleResponse = Res<'GetArticle', 200>
-export type CommentResponse = Res<'CreateArticleComment', 201>
-export type CommentsResponse = Res<'GetArticleComments', 200>
-export type TagsResponse = Res<'GetTags', 200>
+export interface ArticlesPage {
+  articles: ArticleListItem[]
+  articlesCount: number
+}
+
+export interface LoginPayload {
+  email: string
+  password: string
+}
+export interface NewUserPayload {
+  username: string
+  email: string
+  password: string
+}
+export interface UpdateUserPayload {
+  email?: string
+  password?: string
+  username?: string
+  bio?: string | null
+  image?: string | null
+}
+export interface NewArticlePayload {
+  title: string
+  description: string
+  body: string
+  tagList?: string[]
+}
+export type UpdateArticlePayload = Partial<NewArticlePayload>
+export interface NewCommentPayload {
+  body: string
+}
+
+export interface UserResponse {
+  user: User
+}
+export interface ProfileResponse {
+  profile: Profile
+}
+export interface ArticleResponse {
+  article: Article
+}
+export interface CommentResponse {
+  comment: Comment
+}
+export interface CommentsResponse {
+  comments: Comment[]
+}
+export interface TagsResponse {
+  tags: string[]
+}

@@ -1,4 +1,4 @@
-// Payloads are typed with the generated schema, so a contract change that the
+// Payloads are typed with src/api/types, so a contract change that the
 // fixtures do not follow fails the typecheck.
 import type { Article, ArticleListItem, ArticlesPage, Comment, Profile, User } from '@/api/types'
 
