@@ -12,7 +12,7 @@ docker/down:
 	$(COMPOSE) down
 
 docker/logs:
-	$(COMPOSE) logs -f conduit-frontend
+	$(COMPOSE) logs -f conduit-nextjs
 
 docker/ps:
 	$(COMPOSE) ps
