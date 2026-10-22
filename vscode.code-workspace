@@ -1,0 +1,17 @@
+{
+    "folders": [
+        {
+            "name": "conduit-frontend-react",
+            "path": "conduit-frontend-react"
+        },
+        {
+            "name": "conduit-docker",
+            "path": "conduit-docker"
+        },
+        {
+            "name": ".",
+            "path": "."
+        }
+    ],
+    "settings": {}
+}
