@@ -1,8 +1,8 @@
 {
     "folders": [
         {
-            "name": "conduit-frontend-react",
-            "path": "conduit-frontend-react"
+            "name": "conduit-frontend",
+            "path": "conduit-frontend"
         },
         {
             "name": "conduit-docker",
