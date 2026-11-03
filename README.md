@@ -2,7 +2,7 @@
 
 A [RealWorld](https://github.com/realworld-apps/realworld) "Conduit" frontend, a Medium.com-style publishing platform, built as a single-page app organised by **feature**.
 
-The app talks only to the HTTP contract in [`conduit-openapi/openapi.yml`](conduit-openapi/openapi.yml), so any interchangeable Conduit backend (Spring, Go/Echo, FastAPI, .NET) that listens on port 8080 works without a frontend change.
+The app talks only to the HTTP contract in [`conduit-openapi/openapi.yml`](conduit-openapi/openapi.yml), so any Conduit backend (Express, Spring, Go/Echo, FastAPI, .NET, in any of their database variants) that listens on port 8080 works without a frontend change.
 
 **Stack:** React 19 · TypeScript (strict) · Vite · TanStack Query · Axios · React Router · react-hook-form + zod · Vitest + Testing Library + MSW · Playwright · Docker (nginx) · GitHub Actions
 
@@ -32,14 +32,15 @@ npm run dev
 
 The app runs at http://localhost:3000. Vite forwards `/api` to `http://localhost:8080`, so the browser stays same-origin and no CORS setup is needed.
 
-| Goal                         | Command                                    |
-| ---------------------------- | ------------------------------------------ |
-| Run in development           | `npm run dev`                              |
-| Run the production build     | `npm run build && npm run preview`         |
-| Run a mock backend on :8080  | `npm run mock-api`                         |
-| Run with Docker              | `make docker/up` (from `conduit-docker`)   |
-| Stop Docker                  | `make docker/down` (from `conduit-docker`) |
-| Lint, typecheck, test, build | `npm run verify`                           |
+| Goal                         | Command                                     |
+| ---------------------------- | ------------------------------------------- |
+| Run in development           | `npm run dev`                               |
+| Run the production build     | `npm run build && npm run preview`          |
+| Run a mock backend on :8080  | `npm run mock-api`                          |
+| Run with Docker              | `make docker/up` (from `conduit-docker`)    |
+| Build the Docker image only  | `make docker/build` (from `conduit-docker`) |
+| Stop Docker                  | `make docker/down` (from `conduit-docker`)  |
+| Lint, typecheck, test, build | `npm run verify`                            |
 
 `npm run mock-api` starts an in-memory implementation of the contract (users, articles, comments, favorites, follows, tags). It is meant for demos and for the browser tests, and it forgets everything when stopped.
 
@@ -54,7 +55,7 @@ The app runs at http://localhost:3000. Vite forwards `/api` to `http://localhost
 - **Social**: follow and unfollow authors, favorite and unfavorite articles with cache updates.
 - **Comments**: add comments, delete your own comments.
 - **Profiles**: authored and favorited articles per user.
-- **Platform**: toast messages, loading skeletons, error boundary, per-page document titles, light and dark theme.
+- **Platform**: toast messages, loading skeletons, error boundary, per-page document titles, a light and a dark theme that follow the operating system setting.
 
 ## Configuration
 
@@ -195,24 +196,28 @@ The image is built in two stages: Node builds the Vite bundle, then an unprivile
 
 ```sh
 cd conduit-docker
-make docker/up                                   # http://localhost:3000
+make docker/up
 BACKEND_URL=http://my-backend:8080 make docker/up
-PORT=8081 make docker/up                         # publish on another host port
+PORT=8081 make docker/up
+make docker/ps
 make docker/logs
 make docker/down
 ```
+
+`make docker/up` publishes http://localhost:3000. `PORT` publishes on another host port, and `BACKEND_URL` points nginx at another backend.
 
 The default `BACKEND_URL` is `http://host.docker.internal:8080`, which reaches a backend running on your machine; the Compose file maps `host.docker.internal` to the host gateway so this also works on Linux. nginx resolves the backend host when it starts, so the host name must be resolvable at that moment.
 
 ## CI
 
-`.github/workflows/ci.yml` runs these jobs:
+`.github/workflows/ci.yml` runs on pushes and pull requests with these jobs:
 
-1. **Commitlint**: commit message linting on pull requests (`.commitlintrc.json`).
-2. **Quality**: lint, typecheck, unit and UI tests, then coverage, uploaded as an artifact.
-3. **Build**: production build, uploaded as an artifact.
-4. **E2E browser**: the Playwright suite against that build, with the mock API as backend; the report is uploaded on failure.
-5. **Docker**: image build, then a smoke test that starts the container next to the mock API, checks `/ping`, requests every page and calls `/api/v1/tags` through nginx.
+1. **conduit code quality**: lint, typecheck, unit and UI tests, then coverage, uploaded as an artifact.
+2. **conduit code build**: production build, uploaded as an artifact.
+3. **conduit end-to-end browser**: the Playwright suite against that build, with the mock API as backend; the report is uploaded on failure.
+4. **conduit docker container**: image build, then a smoke test that starts the container next to the mock API, checks `/ping`, requests every page and calls `/api/v1/tags` through nginx.
+
+`.github/workflows/commitlint.yml` is a separate workflow that lints commit messages on pull requests, configured in `.commitlintrc.json`.
 
 ## Limits
 
